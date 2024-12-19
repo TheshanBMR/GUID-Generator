@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <title>GUID/UUID Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 transition-colors duration-200" id="body">
+    <div class="min-h-screen">
+        <div class="max-w-4xl mx-auto p-6">
+            <div class="rounded-lg shadow-lg p-6 bg-white" id="mainContainer">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900" id="title">
+                        GUID/UUID Generator
+                    </h1>
+                    <button
+                        onclick="toggleDarkMode()"
+                        class="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors"
+                        id="darkModeToggle"
+                    >
+                        🌙 Dark
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-6 items-center">
+                    <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value="1"
+                        id="quantityInput"
+                        class="w-24 px-3 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
+                        title="Number of GUIDs to generate"
+                    />
+
+                    <select
+                        id="formatSelect"
+                        class="px-3 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
+                    >
+                        <option value="lowercase">Lowercase</option>
+                        <option value="uppercase">Uppercase</option>
+                        <option value="braces">With Braces</option>
+                    </select>
+
+                    <button
+                        onclick="generateGUIDs()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Generate
+                    </button>
+                </div>
+
+                <div class="space-y-2" id="guidList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDarkMode = false;
+        const guids = [];
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function formatGUID(guid, format) {
+            switch(format) {
+                case 'uppercase':
+                    return guid.toUpperCase();
+                case 'braces':
+                    return `{${guid.toUpperCase()}}`;
+                default:
+                    return guid;
+            }
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            const body = document.getElementById('body');
+            const mainContainer = document.getElementById('mainContainer');
+            const title = document.getElementById('title');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const inputs = document.querySelectorAll('input, select');
+            const guidItems = document.querySelectorAll('.guid-item');
+
+            if (isDarkMode) {
+                body.classList.replace('bg-gray-100', 'bg-gray-900');
+                mainContainer.classList.replace('bg-white', 'bg-gray-800');
+                title.classList.replace('text-gray-900', 'text-white');
+                darkModeToggle.textContent = '🌞 Light';
+                darkModeToggle.classList.remove('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
+                darkModeToggle.classList.add('bg-gray-700', 'text-white', 'hover:bg-gray-600');
+                
+                inputs.forEach(input => {
+                    input.classList.remove('bg-white', 'border-gray-300', 'text-gray-900');
+                    input.classList.add('bg-gray-700', 'border-gray-600', 'text-white');
+                });
+
+                guidItems.forEach(item => {
+                    item.classList.replace('bg-gray-50', 'bg-gray-700');
+                    item.querySelector('.guid-text').classList.replace('text-gray-900', 'text-white');
+                    const copyBtn = item.querySelector('.copy-btn');
+                    if (!copyBtn.classList.contains('bg-green-600')) {
+                        copyBtn.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                        copyBtn.classList.add('bg-gray-600', 'text-white', 'hover:bg-gray-500');
+                    }
+                });
+            } else {
+                body.classList.replace('bg-gray-900', 'bg-gray-100');
+                mainContainer.classList.replace('bg-gray-800', 'bg-white');
+                title.classList.replace('text-white', 'text-gray-900');
+                darkModeToggle.textContent = '🌙 Dark';
+                darkModeToggle.classList.remove('bg-gray-700', 'text-white', 'hover:bg-gray-600');
+                darkModeToggle.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-gray-300');
+                
+                inputs.forEach(input => {
+                    input.classList.remove('bg-gray-700', 'border-gray-600', 'text-white');
+                    input.classList.add('bg-white', 'border-gray-300', 'text-gray-900');
+                });
+
+                guidItems.forEach(item => {
+                    item.classList.replace('bg-gray-700', 'bg-gray-50');
+                    item.querySelector('.guid-text').classList.replace('text-white', 'text-gray-900');
+                    const copyBtn = item.querySelector('.copy-btn');
+                    if (!copyBtn.classList.contains('bg-green-600')) {
+                        copyBtn.classList.remove('bg-gray-600', 'text-white', 'hover:bg-gray-500');
+                        copyBtn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                    }
+                });
+            }
+        }
+
+        async function copyToClipboard(text, button) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalClasses = button.className;
+                button.textContent = 'Copied!';
+                button.className = 'px-3 py-1 rounded-lg text-sm bg-green-600 text-white transition-colors';
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.className = originalClasses;
+                }, 1500);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        }
+
+        function generateGUIDs() {
+            const quantity = Math.min(Math.max(document.getElementById('quantityInput').value, 1), 100);
+            const format = document.getElementById('formatSelect').value;
+            const guidList = document.getElementById('guidList');
+            guidList.innerHTML = '';
+
+            for (let i = 0; i < quantity; i++) {
+                const guid = formatGUID(generateUUID(), format);
+                const guidElement = document.createElement('div');
+                guidElement.className = `guid-item flex justify-between items-center p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`;
+                
+                guidElement.innerHTML = `
+                    <span class="guid-text font-mono ${isDarkMode ? 'text-white' : 'text-gray-900'}">${guid}</span>
+                    <button 
+                        onclick="copyToClipboard('${guid}', this)"
+                        class="copy-btn px-3 py-1 rounded-lg text-sm ${
+                            isDarkMode 
+                                ? 'bg-gray-600 text-white hover:bg-gray-500' 
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        } transition-colors"
+                    >
+                        Copy
+                    </button>
+                `;
+                
+                guidList.appendChild(guidElement);
+            }
+        }
+
+        // Generate initial GUID
+        generateGUIDs();
+    </script>
+</body>
+</html>
